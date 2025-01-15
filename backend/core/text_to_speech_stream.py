@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from elevenlabs import VoiceSettings
 from elevenlabs.client import ElevenLabs
 
+# Load environment variables
 load_dotenv()
 
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
@@ -19,6 +20,11 @@ client = ElevenLabs(
 
 
 def text_to_speech_stream(text: str) -> IO[bytes]:
+    """
+    Converts text to speech using ElevenLabs API and streams audio.
+    Returns:
+        BytesIO object containing audio data.
+    """
     response = client.text_to_speech.convert(
         text=text,
         voice_id="pNInz6obpgDQGcFmaJgB",  # Adam pre-made voice
@@ -47,12 +53,3 @@ def text_to_speech_stream(text: str) -> IO[bytes]:
 
     # Return the stream for further processing
     return audio_stream
-
-
-if __name__ == "__main__":
-    audio_stream = text_to_speech_stream(
-        "Hello, world! This is a test of the ElevenLabs API."
-    )
-    print(f"Audio-Stream: {audio_stream}")
-    print(f"Audio-Stream Size: {len(audio_stream.read())} bytes")
-    audio_stream.close()

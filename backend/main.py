@@ -1,11 +1,14 @@
 from core.text_to_speech_stream import text_to_speech_stream
 from dotenv import load_dotenv
 from fastapi import FastAPI
-
-app = FastAPI()
-
+from routers.generate_audio import router as generate_audio_router
 
 load_dotenv()
+
+# Initialize FastAPI app
+app = FastAPI()
+
+app.include_router(generate_audio_router)
 
 
 @app.get("/")

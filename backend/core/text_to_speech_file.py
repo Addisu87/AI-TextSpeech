@@ -2,7 +2,7 @@ import os
 import uuid
 
 from dotenv import load_dotenv
-from elevenlabs import VoiceSettings, play
+from elevenlabs import VoiceSettings
 from elevenlabs.client import ElevenLabs
 
 load_dotenv()
@@ -33,8 +33,6 @@ def text_to_speech_file(text: str) -> str:
         ),
     )
 
-    play(response)
-
     # Generating a unique file name for the output MP3 file
     save_file_path = f"{uuid.uuid4()}.mp3"
 
@@ -48,7 +46,3 @@ def text_to_speech_file(text: str) -> str:
 
     # Return the path of the saved audio file
     return save_file_path
-
-
-if __name__ == "__main__":
-    text_to_speech_file("Hello, world! This is a test of the ElevenLabs API.")
