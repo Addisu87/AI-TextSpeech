@@ -22,20 +22,6 @@ Make sure you have the following installed before you begin:
 
 ### Installation
 
-<!--  -->
-
-```bash
-pyenv local 3.11
-
-```
-
-<!-- Check python version  -->
-
-```bash
-pyenv exec python -v
-
-```
-
 <!-- Create a virtual environment -->
 
 ```bash
@@ -59,17 +45,10 @@ pip install -r requirements-dev.txt
 
 ```
 
-<!-- Working in dev mode -->
-
-```bash
-    python3 -m pip install -e .
-    python3 -m pip install -e . --no-deps
-```
-
 <!-- Run Your Application -->
 
 ```bash
-    uvicorn app.main:app --reload
+    uvicorn main:app --reload
 ```
 
 <!-- Install and activate the dev environment: -->
@@ -77,21 +56,6 @@ pip install -r requirements-dev.txt
 ```bash
     hatch env create dev
     hatch shell dev
-```
-
- <!-- Verify Installation -->
-
-```bash
-    pip freeze
-```
-
-<!-- To run test -->
-
-```bash
-    pytest
-    pytest -k <test_name>
-    pytest --fixtures
-    pytest --fixtures-per-test
 ```
 
 ### AWS Configuration
