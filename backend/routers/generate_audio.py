@@ -54,16 +54,9 @@ async def add_voice_to_block(
     try:
         character_name = request.character_name
         text = request.text
-        voice_id = request.voice_id
-
-        if not voice_id:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"No voice clone found for character '{character_name}'.",
-            )
 
         # Generate audio stream using text_to_speech_stream
-        audio_stream = text_to_speech_stream(text, voice_id)
+        audio_stream = text_to_speech_stream(text)
 
         # Save audio file
         audio_file_name = f"{character_name.replace(' ', '_')}_{uuid.uuid4()}.mp3"
