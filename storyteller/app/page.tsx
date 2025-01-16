@@ -7,12 +7,31 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+
+// Define Zod schema for form validation
+const createVoiceCloneSchema = z.object({
+	characterName: z
+		.string()
+		.nonempty('Character name is required.'),
+	sampleAudio: z
+		.instanceof(File)
+		.refine(
+			(file) => file !== undefined,
+			'Sample audio is required.',
+		),
+});
+
+const addVoiceToBlockSchema = z.object({
+	characterName: z
+		.string()
+		.nonempty('Character name is required.'),
+	text: z.string().nonempty('Text is required.'),
+});
+
 const AudioGenerator = () => {
-	const [characterName, setCharacterName] =
-		useState('');
-	const [sampleAudio, setSampleAudio] =
-		useState<File | null>(null);
-	const [text, setText] = useState('');
 	const [audioUrl, setAudioUrl] = useState('');
 	const [uploadProgress, setUploadProgress] =
 		useState(0);
@@ -20,27 +39,45 @@ const AudioGenerator = () => {
 		useState(false);
 	const audioRef = useRef<HTMLAudioElement>(null);
 
-	const createVoiceClone = async () => {
-		if (!characterName || !sampleAudio) {
-			alert(
-				'Please provide both character name and sample audio.',
-			);
-			return;
-		}
+	const createVoiceForm = useForm({
+		resolver: zodResolver(createVoiceCloneSchema),
+		defaultValues: {
+			character_name: '',
+			sample_audio: undefined,
+		},
+	});
+
+	const addVoiceForm = useForm({
+		resolver: zodResolver(addVoiceToBlockSchema),
+		defaultValues: {
+			character_name: '',
+			text: '',
+		},
+	});
+
+	console.log(process.env.NEXT_PUBLIC_API_URL);
+
+	const createVoiceClone = async (data: {
+		character_name: string;
+		sample_audio: File;
+	}) => {
+		const { character_name, sample_audio } = data;
 
 		const formData = new FormData();
 		formData.append(
 			'character_name',
-			characterName,
+			character_name,
 		);
-		formData.append('sample_audio', sampleAudio);
+		formData.append('sample_audio', sample_audio);
 
 		try {
 			const response = await axios.post(
 				`${process.env.NEXT_PUBLIC_API_URL}/create-voice-clone`,
 				formData,
 			);
+
 			return response.data;
+			createVoiceForm.reset();
 		} catch (error) {
 			console.error(
 				'Error creating voice clone:',
@@ -49,12 +86,18 @@ const AudioGenerator = () => {
 		}
 	};
 
-	const addVoiceToBlock = async () => {
+	const addVoiceToBlock = async (data: {
+		character_name: string;
+		text: string;
+	}) => {
+		const { character_name, text } = data;
+
 		try {
 			setIsProcessing(true);
 			const response = await axios.post(
 				`${process.env.NEXT_PUBLIC_API_URL}/add-voice-to-block`,
-				{ character_name: characterName, text },
+				{ character_name, text },
+
 				{
 					onUploadProgress: (progressEvent) => {
 						const progress = Math.round(
@@ -67,6 +110,7 @@ const AudioGenerator = () => {
 				},
 			);
 			return response.data;
+			addVoiceForm.reset();
 		} catch (error) {
 			console.error(
 				'Error adding voice to block:',
@@ -89,52 +133,121 @@ const AudioGenerator = () => {
 					AI Voice Generator
 				</h1>
 
-				<div className='space-y-6'>
+				{/* Create Voice Clone Form */}
+				<form
+					onSubmit={createVoiceForm.handleSubmit(
+						createVoiceClone,
+					)}
+					className='space-y-6 mb-8'
+				>
 					<Input
+						{...createVoiceForm.register(
+							'characterName',
+						)}
 						placeholder='Character Name'
-						value={characterName}
-						onChange={(e) =>
-							setCharacterName(e.target.value)
+						className={
+							createVoiceForm.formState.errors
+								.characterName
+								? 'border-red-500'
+								: ''
 						}
 					/>
+					{createVoiceForm.formState.errors
+						.characterName && (
+						<p className='text-red-500 text-sm'>
+							{
+								createVoiceForm.formState.errors
+									.characterName.message
+							}
+						</p>
+					)}
+
 					<input
 						type='file'
 						accept='audio/*'
-						onChange={(e) =>
-							setSampleAudio(
-								e.target.files?.[0] || null,
-							)
-						}
+						{...createVoiceForm.register(
+							'sampleAudio',
+						)}
 						className='block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-500 file:text-white hover:file:bg-blue-600'
 					/>
-					<Button onClick={createVoiceClone}>
+					{createVoiceForm.formState.errors
+						.sampleAudio && (
+						<p className='text-red-500 text-sm'>
+							{
+								createVoiceForm.formState.errors
+									.sampleAudio.message
+							}
+						</p>
+					)}
+
+					<Button type='submit'>
 						Create Voice Clone
 					</Button>
+				</form>
 
-					<Textarea
-						placeholder='Enter text to convert to speech'
-						value={text}
-						onChange={(e) =>
-							setText(e.target.value)
+				{/* Add Voice to Block Form */}
+				<form
+					onSubmit={addVoiceForm.handleSubmit(
+						addVoiceToBlock,
+					)}
+					className='space-y-6'
+				>
+					<Input
+						{...addVoiceForm.register(
+							'characterName',
+						)}
+						placeholder='Character Name'
+						className={
+							addVoiceForm.formState.errors
+								.characterName
+								? 'border-red-500'
+								: ''
 						}
 					/>
+					{addVoiceForm.formState.errors
+						.characterName && (
+						<p className='text-red-500 text-sm'>
+							{
+								addVoiceForm.formState.errors
+									.characterName.message
+							}
+						</p>
+					)}
+
+					<Textarea
+						{...addVoiceForm.register('text')}
+						placeholder='Enter text to convert to speech'
+						className={
+							addVoiceForm.formState.errors.text
+								? 'border-red-500'
+								: ''
+						}
+					/>
+					{addVoiceForm.formState.errors.text && (
+						<p className='text-red-500 text-sm'>
+							{
+								addVoiceForm.formState.errors.text
+									.message
+							}
+						</p>
+					)}
+
 					<Button
-						onClick={addVoiceToBlock}
+						type='submit'
 						disabled={isProcessing}
-						variant='default'
 					>
 						{isProcessing
 							? 'Processing...'
 							: 'Generate Audio'}
 					</Button>
+				</form>
 
-					{uploadProgress > 0 && (
-						<Progress
-							value={uploadProgress}
-							className='w-full'
-						/>
-					)}
-				</div>
+				{uploadProgress > 0 && (
+					<Progress
+						value={uploadProgress}
+						className='w-full my-4'
+					/>
+				)}
 
 				{audioUrl && (
 					<audio
