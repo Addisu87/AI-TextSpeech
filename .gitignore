@@ -171,4 +171,8 @@ cython_debug/
 .pypirc
 
 *.mp3
-*.DS_Store
+.DS_Store
+*.pyc
+*.db
+.vscode/
+*.png
