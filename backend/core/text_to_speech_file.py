@@ -18,13 +18,13 @@ client = ElevenLabs(
 )
 
 
-def text_to_speech_file(text: str) -> str:
+def text_to_speech_file(text: str, voice_id: str) -> str:
     # Calling the text_to_speech conversion API with detailed parameters
     response = client.text_to_speech.convert(
-        voice_id="pNInz6obpgDQGcFmaJgB",  # Adam pre-made voice
+        text=text,
+        voice_id=voice_id,
         model_id="eleven_multilingual_v2",
         output_format="mp3_22050_32",
-        text=text,
         voice_settings=VoiceSettings(
             stability=0.0,
             similarity_boost=1.0,

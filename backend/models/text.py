@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 
 
-# Define a Pydantic model for the request body
 class TextToSpeechRequest(BaseModel):
+    character_name: str
     text: str
+    voice_id: str

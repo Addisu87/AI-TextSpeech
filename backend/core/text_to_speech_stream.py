@@ -19,7 +19,7 @@ client = ElevenLabs(
 )
 
 
-def text_to_speech_stream(text: str) -> IO[bytes]:
+def text_to_speech_stream(text: str, voice_id: str) -> IO[bytes]:
     """
     Converts text to speech using ElevenLabs API and streams audio.
     Returns:
@@ -27,7 +27,7 @@ def text_to_speech_stream(text: str) -> IO[bytes]:
     """
     response = client.text_to_speech.convert(
         text=text,
-        voice_id="pNInz6obpgDQGcFmaJgB",  # Adam pre-made voice
+        voice_id=voice_id,
         model_id="eleven_multilingual_v2",
         output_format="mp3_22050_32",
         voice_settings=VoiceSettings(
@@ -37,8 +37,6 @@ def text_to_speech_stream(text: str) -> IO[bytes]:
             use_speaker_boost=True,
         ),
     )
-
-    print("Streaming audio data...")
 
     # Create a BytesIO object to hold audio data
     audio_stream = BytesIO()
