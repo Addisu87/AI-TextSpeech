@@ -22,7 +22,7 @@ def text_to_speech_file(text: str, voice_id: str) -> str:
     # Calling the text_to_speech conversion API with detailed parameters
     response = client.text_to_speech.convert(
         text=text,
-        voice_id=voice_id,
+        voice_id="pNInz6obpgDQGcFmaJgB",
         model_id="eleven_multilingual_v2",
         output_format="mp3_22050_32",
         voice_settings=VoiceSettings(

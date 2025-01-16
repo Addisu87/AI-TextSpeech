@@ -1,6 +1,7 @@
 from core.text_to_speech_stream import text_to_speech_stream
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from routers.generate_audio import router as generate_audio_router
 
 load_dotenv()
@@ -9,6 +10,19 @@ load_dotenv()
 app = FastAPI()
 
 app.include_router(generate_audio_router)
+
+
+origins = [
+    "http://localhost:3000",  # Replace with the actual URL of your frontend
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/")
