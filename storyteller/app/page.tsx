@@ -5,7 +5,6 @@ import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Progress } from '@/components/ui/progress';
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,7 +18,7 @@ const createVoiceCloneSchema = z.object({
 	sampleAudio: z
 		.instanceof(File)
 		.refine(
-			(file) => file !== undefined,
+			(file) => file.size > 0,
 			'Sample audio is required.',
 		),
 });
@@ -31,12 +30,8 @@ const addVoiceToBlockSchema = z.object({
 	text: z.string().nonempty('Text is required.'),
 });
 
-const AudioGenerator = () => {
+const HomePage = () => {
 	const [audioUrl, setAudioUrl] = useState('');
-	const [uploadProgress, setUploadProgress] =
-		useState(0);
-	const [isProcessing, setIsProcessing] =
-		useState(false);
 	const audioRef = useRef<HTMLAudioElement>(null);
 
 	const createVoiceForm = useForm({
@@ -55,70 +50,59 @@ const AudioGenerator = () => {
 		},
 	});
 
-	console.log(process.env.NEXT_PUBLIC_API_URL);
+	const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
+	// Create Voice Clone
 	const createVoiceClone = async (data: {
-		character_name: string;
-		sample_audio: File;
+		characterName: string;
+		sampleAudio: File;
 	}) => {
-		const { character_name, sample_audio } = data;
+		const { characterName, sampleAudio } = data;
 
 		const formData = new FormData();
 		formData.append(
 			'character_name',
-			character_name,
+			characterName,
 		);
-		formData.append('sample_audio', sample_audio);
+		formData.append('sample_audio', sampleAudio);
 
 		try {
 			const response = await axios.post(
-				`${process.env.NEXT_PUBLIC_API_URL}/create-voice-clone`,
+				`${apiUrl}/create-voice-clone`,
 				formData,
 			);
-
-			return response.data;
 			createVoiceForm.reset();
+			return response.data;
 		} catch (error) {
 			console.error(
 				'Error creating voice clone:',
 				error,
 			);
+			throw error;
 		}
 	};
 
 	const addVoiceToBlock = async (data: {
-		character_name: string;
+		characterName: string;
 		text: string;
 	}) => {
-		const { character_name, text } = data;
-
 		try {
-			setIsProcessing(true);
 			const response = await axios.post(
-				`${process.env.NEXT_PUBLIC_API_URL}/add-voice-to-block`,
-				{ character_name, text },
-
+				`${apiUrl}/add-voice-to-block`,
 				{
-					onUploadProgress: (progressEvent) => {
-						const progress = Math.round(
-							(progressEvent.loaded /
-								(progressEvent.total || 1)) *
-								100,
-						);
-						setUploadProgress(progress);
-					},
+					character_name: data.characterName,
+					text: data.text,
 				},
 			);
-			return response.data;
 			addVoiceForm.reset();
+			setAudioUrl(response.data.audio_url);
+			return response.data;
 		} catch (error) {
 			console.error(
 				'Error adding voice to block:',
 				error,
 			);
-		} finally {
-			setIsProcessing(false);
-			setUploadProgress(0);
+			throw error;
 		}
 	};
 
@@ -162,7 +146,7 @@ const AudioGenerator = () => {
 						</p>
 					)}
 
-					<input
+					<Input
 						type='file'
 						accept='audio/*'
 						{...createVoiceForm.register(
@@ -232,22 +216,10 @@ const AudioGenerator = () => {
 						</p>
 					)}
 
-					<Button
-						type='submit'
-						disabled={isProcessing}
-					>
-						{isProcessing
-							? 'Processing...'
-							: 'Generate Audio'}
+					<Button type='submit'>
+						Generate Audio
 					</Button>
 				</form>
-
-				{uploadProgress > 0 && (
-					<Progress
-						value={uploadProgress}
-						className='w-full my-4'
-					/>
-				)}
 
 				{audioUrl && (
 					<audio
@@ -265,4 +237,4 @@ const AudioGenerator = () => {
 	);
 };
 
-export default AudioGenerator;
+export default HomePage;
